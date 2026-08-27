@@ -1,0 +1,46 @@
+# =========================
+# PYTHON
+# =========================
+# Kompilierte Python-Dateien (braucht niemand, erstellt Python bei jedem Start neu)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtuelle Umgebungen (falls du mal eine anlegst, die sind oft gigantisch groß)
+venv/
+env/
+.env
+
+# Jupyter Notebook Checkpoints (falls du Daten später mit Jupyter auswertest)
+.ipynb_checkpoints/
+
+# =========================
+# ARDUINO
+# =========================
+# Kompilierte Binärdateien (Git soll nur den Code speichern, nicht das fertige Maschinenprogramm)
+build/
+*.hex
+*.elf
+*.bin
+*.a
+
+# =========================
+# BETRIEBSSYSTEM (Windows & Mac)
+# =========================
+# Vorschaubilder und unsichtbare Systemdateien, die extrem nervig sind
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# =========================
+# DATEN & LOGS
+# =========================
+# Falls du Messdaten aus dem Pendel speicherst, ignoriere riesige Log-Files
+*.csv
+*.log
+*.dat
+
+# =========================
+# VS CODE
+# =========================
+.vscode/
