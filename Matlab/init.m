@@ -16,8 +16,8 @@ m1 = 0.01721; % Masse des Motorarms, Dichte von PLA oder ähnlich
 ms = 0.02151; % Masse des Pendelstabs
 mg = 0.015; % Masse des Pendelgewichts, Mutter oder Eisenkugel
 
-m1 = Vm * dichte_alu;
-ms = Vs * dichte_alu;
+m1 = Vm * dichte_pla;
+ms = Vs * dichte_pla;
 
 mp = ms+mg; % Gesamtgewicht am Pendelstab
 lp = (ms*ls/2 + mg*ls)/(ms+mg); % Neuer Massenschwerpunkt am Pendelstab
@@ -77,7 +77,7 @@ disp('Diskrete Eingangsmatrix Bd:'); disp(Bd);
 % --- LQR Regler berechnen ---
 % Q-Matrix (Gewichtung der Zustände: phi1, phi2, phi_p1, phi_p2)
 % Wir bestrafen Abweichungen des Pendelwinkels (Index 2) am stärksten:
-Q = diag([10, 100, 1, 1]); 
+Q = diag([50, 100, 1, 1]); 
 
 % R-Matrix (Gewichtung der Stellgröße)
 % Bestraft zu hohen Drehmoment-Einsatz des Motors:

@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.mplot3d import Axes3D
 
-# STARTZUSTAND: Unten (Pi) mit minimalem Schubs
-x = np.array([0.0, np.pi + 0.01, 0.0, 0.0]) 
+# STARTZUSTAND:
+x = np.array([-3/4*np.pi, np.pi, 0.0, 0.0]) 
 history_x = []
 
 def system_dynamics(x_state, tau_val):
@@ -42,8 +42,8 @@ def system_dynamics(x_state, tau_val):
     # Hier wieder minimale Dämpfung rein, damit der Swing-Up realistisch ist
     b1 = 0.005 # Motordämpfung
     b2 = 0.0001 # Gelenkreibung
-    
-    F1 = tau_val - mp * lp**2 * np.sin(2*phi2) * dphi1 * dphi2 + mp * r * lp * np.sin(phi2) * dphi2**2 - b1 * dphi1
+
+    F1 = tau_val - mp * lp**2 * np.sin(2*phi2) * dphi1 * dphi2 - mp * r * lp * np.sin(phi2) * dphi2**2 - b1 * dphi1
     F2 = 0.5 * mp * lp**2 * np.sin(2*phi2) * dphi1**2 + mp * g * lp * np.sin(phi2) - b2 * dphi2
     
     ddq = np.linalg.solve(M, np.array([F1, F2]))
@@ -88,7 +88,6 @@ try:
                 
                 x = rk4_step(x, tau, dt=0.005)
                 history_x.append(x.copy())
-            
             except Exception as e:
                 pass 
                 
