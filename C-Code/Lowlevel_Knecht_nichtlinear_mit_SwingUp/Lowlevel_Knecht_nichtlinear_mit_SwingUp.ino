@@ -1,15 +1,12 @@
 #include <math.h>
 
 // --- 1. LQR Parameter ---
-// mit Q11 = 10
-// float K[4] = {-0.0346, 0.4239, -0.0184, 0.0378};
-
 // mit Q11 = 50 
 float K[4] = {-0.1418, 0.9346, -0.0494, 0.0825};
 
 const float max_tau = 1.3; 
-float k_swing = 10.0; // Tuning-Faktor: Wie aggressiv gepumpt wird
-const float kp_swing = 1; // Tuning-Faktor: Rückstellkraft der "Feder"
+const float k_swing = 10.0; // Tuning-Faktor: Wie aggressiv gepumpt wird
+// nicht in Verwendung: const float kp_swing = 1; // Tuning-Faktor: Rückstellkraft der "Feder"
 const float kd_swing = 0.01; // Tuning-Faktor: Intesnsität des "Dämpfers"
 
 // --- 2. Physik-Parameter für Swing-Up (aus MATLAB) ---

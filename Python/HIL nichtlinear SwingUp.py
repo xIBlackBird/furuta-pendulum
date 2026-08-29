@@ -7,7 +7,7 @@ import matplotlib.animation as animation
 from mpl_toolkits.mplot3d import Axes3D
 
 # STARTZUSTAND:
-x = np.array([-3/4*np.pi, np.pi, 0.0, 0.0]) 
+x = np.array([0.0, np.pi, 0.0, 0.0]) 
 history_x = []
 
 def system_dynamics(x_state, tau_val):
