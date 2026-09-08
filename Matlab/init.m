@@ -1,89 +1,99 @@
-% Parameter definieren
-g = 9.81; % Erdbeschleunigung
+% ==========================================
+% 1. Grund- und Getriebeparameter
+% ==========================================
+g = 9.81;                           % Erdbeschleunigung
+i = 30;                             % Übersetzung des Getriebes
 
-r = 0.09; % Länge des der Welle ab Ursprung
-rm = 0.008; % Radius Motorarm
-ls = 0.128; % Länge des Pendelstabs
-rs = 0.006; % Radius Pendelstab
+% ==========================================
+% 2. Motorkonstanten
+% ==========================================
+U_nom = 12.0;                       % Nennspannung (V)
+I_stall = 5.5;                      % Blockierstrom (A)
+tau_stall = 1.373;                  % Blockiermoment nach Getriebe (Nm)
 
+R = U_nom / I_stall;                % Klemmenwiderstand (Ohm)
+Kt = (tau_stall / i) / I_stall;     % Drehmomentkonstante VOR Getriebe (Nm/A)
+Ke = Kt;                            % In SI-Einheiten ist Kt numerisch identisch zu Ke!
+b_motor = (Kt * Ke * i^2) / R;      % Viskose Dämpfung durch den Motor (Back-EMF)
+c_motor = (Kt * i) / R;             % Umrechnungsfaktor von Spannung zu Drehmoment am Arm
+
+% ==========================================
+% 3. Geometrie und Massen
+% ==========================================
+r = 0.08;                           % Abstand Pendel zu Motorachse
+rm = 0.008;                         % Radius Motorarm
+ls = 0.128;                         % Länge des Pendelstabs
+rs = 0.006;                         % Radius Pendelstab
 Vs = pi*rs^2*ls;
-
 dichte_pla = 1.24 * 10^3;
 dichte_alu = 2.7 * 10^3;
-
-% m1 = 0.01721; % Masse des Motorarms, Mischung aus allen Teilen, die
-% verbaut sind, Schrauben, Muttern, ...
-mg = 0.0; % Masse des Pendelgewichts, Mutter oder Eisenkugel
-
-% m1 = Vm * dichte_pla;
+mg = 0.0;                           % Masse des Pendelgewichts
 ms = Vs * dichte_alu;
+mp = ms+mg;                         % Gesamtgewicht am Pendelstab
+lp = (ms*ls/2 + mg*ls)/(ms+mg);     % Neuer Massenschwerpunkt am Pendelstab
 
-mp = ms+mg; % Gesamtgewicht am Pendelstab
-lp = (ms*ls/2 + mg*ls)/(ms+mg); % Neuer Massenschwerpunkt am Pendelstab
+% ==========================================
+% 4. Trägheitsmomente
+% ==========================================
+theta_motor = 0.0000036;            % Trägheitsmoment des Motors
+theta_getriebe = 0;                 % Trägheitsmoment des Getriebes
+theta_arm = 176672.25 * 10^-9;      % Aus dem CAD-Modell
 
-theta_motor = 0.0000036; % Trägheitsmoment des Motors (Rotor geschätzt als massiver drehender Zylinder von Gemini mit so ein paar groben Werten)
-theta_getriebe = 0; % Trägheitsmoment des Getriebes
-i = 30; % Übersetzung des Getriebes
-theta_arm = 176672.25 * 10^-9; % Aus dem CAD-Modell entnommen (Davor die Schätzung mit: 1/3 * m1 * r^2; % Massenträgheitsmoment Motorarm, direkte Formel für homogene Stäbe gelagert an einem Ende (1/12*m*r^2 + m*(r/2)^2))
-theta1 = theta_motor*i^2 + theta_getriebe + theta_arm; % konstantes Massenträgheitsmoment um Motorachse (schwingendes Pendel geht automatisch durch Geschwindigkeit des Massenschwerpunktes bei Lagrange mit ein)
+theta1 = theta_motor*i^2 + theta_getriebe + theta_arm; 
+theta_stab = 1/12*ms*ls^2 + ms*(lp-ls/2)^2; 
+theta_gewicht = 0 + mg*(ls-lp)^2; 
+theta2 = theta_stab + theta_gewicht; 
 
-theta_stab = 1/12*ms*ls^2 + ms*(lp-ls/2)^2; % Trägheitsmoment um Schwerpunkt + Steiner zum neuen Schwerpunkt
-theta_gewicht = 0 + mg*(ls-lp)^2; % Massenträgheitsmoment Gewicht (als Punktmasse angenommen) + Steiner zum neuen Schwerpunkt
-theta2 = theta_stab + theta_gewicht; % Massenträgheitsmoment um Schwerpunkt des Pendels
+theta_1A = theta1 + mp*r^2; 
+theta_2P = theta2 + mp*lp^2;
 
-% Konstanten für Linearisierung zum Vereinfachen
-J1 = theta1 + mp*r^2; 
-J2 = theta2 + mp*lp^2;
+% ==========================================
+% 5. Dynamik-Hilfsvariablen & Reibung
+% ==========================================
 Km = mp*r*lp;
 Gp = mp*lp*g;
+Det = theta_1A*theta_2P - Km^2;     % Systemdeterminante
 
-Det = J1*J2 - Km^2; % Systemdeterminante
+b1 = 0;                             % Mechanische Reibung am Motor
+b2 = 1.3 * theta_2P;                % Reibung Pendellagerung (gemessen!)
+b1_ges = b1 + b_motor;              % Gesamtdämpfung Arm
 
-% Systemmatrix
-Ac = [0, 0, 1, 0; 
-     0, 0, 0, 1;
-     0, (Km*Gp)/Det, 0, 0;
-     0, (J1*Gp)/Det, 0, 0];
+% ==========================================
+% 6. Zustandsraummodell (Kontinuierlich)
+% ==========================================
+Ac = [0, 0,                 1,                      0; 
+      0, 0,                 0,                      1;
+      0, (Km*Gp)/Det,       -theta_2P*b1_ges/Det,   -Km*b2/Det;
+      0, (theta_1A*Gp)/Det, -Km*b1_ges/Det,         -theta_1A*b2/Det];
 
-% Eingangmatrix
 Bc = [0; 
-     0;
-     J2/Det;
-     Km/Det;
-     ];
+      0;
+      theta_2P*c_motor/Det;
+      Km*c_motor/Det];
 
-% Ausgangsmatrix
 Cc = eye(4);
-
-% Durchgriffsmatrix
 Dc = 0;
 
-% Anfangswerte
-init_conditions = [0, 0.3, 0, 0];
+disp('Kontinuierliche Systemmatrix Ac:'); disp(Ac);
+disp('Kontinuierliche Eingangsmatrix Bc:'); disp(Bc);
 
-disp('Matrix A:'); disp(Ac);
-disp('Matrix B:'); disp(Bc);
-
-sys_c = ss(Ac, Bc, Cc, Dc); % Kontinuierliches System
-
-Ts = 0.005; % Abtastzeit
-
-sys_d = c2d(sys_c, Ts, 'zoh'); % System diskretisieren
-
+% ==========================================
+% 7. Diskretisierung (zoh)
+% ==========================================
+sys_c = ss(Ac, Bc, Cc, Dc); 
+Ts = 0.005;                         % Abtastzeit (200 Hz)
+sys_d = c2d(sys_c, Ts, 'zoh');      % System diskretisieren
 Ad = sys_d.A;
 Bd = sys_d.B;
+
 disp('Diskrete Systemmatrix Ad:'); disp(Ad);
 disp('Diskrete Eingangsmatrix Bd:'); disp(Bd);
 
-% --- LQR Regler berechnen ---
-% Q-Matrix (Gewichtung der Zustände: phi1, phi2, phi_p1, phi_p2)
-% Wir bestrafen Abweichungen des Pendelwinkels (Index 2) am stärksten:
-Q = diag([50, 100, 1, 1]); 
+% ==========================================
+% 8. LQR Regler
+% ==========================================
+Q = diag([50, 100, 1, 1]);          % Gewichtung der Zustände
+R_LQR = 1;                          % Gewichtung der Stellgröße
 
-% R-Matrix (Gewichtung der Stellgröße)
-% Bestraft zu hohen Drehmoment-Einsatz des Motors:
-R = 1; 
-
-% Regler-Matrix K berechnen
-K = dlqr(Ad, Bd, Q, R);
+K = dlqr(Ad, Bd, Q, R_LQR);
 disp('Regler-Matrix K:'); disp(K);
