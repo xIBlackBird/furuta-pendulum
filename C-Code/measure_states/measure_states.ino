@@ -1,4 +1,19 @@
 #include <Wire.h>
+ 
+// --- LQR Regler Konstanten (aus MATLAB) ---
+const float K1 = -6.0483; // für x1 (Arm-Position)
+const float K2 = 48.2450; // für x2 (Pendel-Position)
+const float K3 = -2.5172; // für x3 (Arm-Geschwindigkeit)
+const float K4 = 4.4919; // für x4 (Pendel-Geschwindigkeit)
+
+// --- Motor-Pins (BTS7960) ---
+const int LPWM_PIN = 5; // Pin für Linksherum
+const int RPWM_PIN = 6; // Pin für Rechtsherum
+/*
+// hast du auf dem Board an Vcc verbunden
+const int L_EN_PIN = 7; // Enable Links
+const int R_EN_PIN = 8; // Enable Rechts
+*/
 
 // --- AS5600 (Pendel) ---
 const int AS5600_ADDR = 0x36;
@@ -44,6 +59,9 @@ void setup() {
   pinMode(ENCODER_B, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(ENCODER_A), updateEncoderA, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ENCODER_B), updateEncoderB, CHANGE);
+
+  pinMode(LPWM_PIN, OUTPUT);
+  pinMode(RPWM_PIN, OUTPUT);
 
   Serial.println("=== Sensorfusion gestartet ===");
   delay(1000);
@@ -116,6 +134,7 @@ void loop() {
     while (x2 > PI)  x2 -= 2.0 * PI;
     while (x2 < -PI) x2 += 2.0 * PI;
 
+    /*
     // 7. Serielle Ausgabe
     // Wir geben nur jeden 10. Durchlauf (alle 50ms) aus, 
     // um die 5ms-Schleife nicht durch lange Textausgaben zu bremsen.
@@ -126,6 +145,48 @@ void loop() {
       Serial.print(" | x3 (rad/s): "); Serial.print(x3, 2);
       Serial.print(" | x4 (rad/s): "); Serial.println(x4, 2);
       printCounter = 0;
+    }
+    */
+    // --- 7. LQR Regler berechnen ---
+    // u ist hier die benötigte SPANNUNG in Volt!
+    float u_volt = -(K1 * x1 + K2 * x2 + K3 * x3 + K4 * x4);
+
+    // --- 8. Sicherheitsabschaltung ---
+    // Wenn das Pendel weiter als z.B. 45° (0.78 rad) fällt, schalten wir den Motor ab, 
+    // damit das System auf dem Tisch nicht völlig eskaliert. Nur für LQR, sonst swingup
+    if (abs(x2) > 0.78) {
+      u_volt = 0;
+    }
+
+    // --- 9. Totzonen-Kompensation und PWM-Umrechnung ---
+    int pwm_output = 0;
+    
+    // Finde heraus, bei wie viel Volt dein Motor im echten Leben GANZ KNAPP anfängt zu drehen.
+    // Beispiel: Er braucht mindestens 1.5V, um die innere Reibung zu überwinden.
+    float totzone_volt = 1.5; 
+    
+    if (u_volt > 0.01) {
+      // Motor soll vorwärts drehen
+      float u_kompensiert = u_volt + totzone_volt; 
+      pwm_output = (u_kompensiert / 12.0) * 255;
+      pwm_output = constrain(pwm_output, 0, 255); // Sicherheit: Maximal 255
+      
+      analogWrite(LPWM_PIN, 0);
+      analogWrite(RPWM_PIN, pwm_output);
+      
+    } else if (u_volt < -0.01) {
+      // Motor soll rückwärts drehen
+      float u_kompensiert = abs(u_volt) + totzone_volt;
+      pwm_output = (u_kompensiert / 12.0) * 255;
+      pwm_output = constrain(pwm_output, 0, 255);
+      
+      analogWrite(RPWM_PIN, 0);
+      analogWrite(LPWM_PIN, pwm_output);
+      
+    } else {
+      // Motor stoppen
+      analogWrite(LPWM_PIN, 0);
+      analogWrite(RPWM_PIN, 0);
     }
   }
 }

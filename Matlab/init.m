@@ -74,8 +74,8 @@ Bc = [0;
 Cc = eye(4);
 Dc = 0;
 
-disp('Kontinuierliche Systemmatrix Ac:'); disp(Ac);
-disp('Kontinuierliche Eingangsmatrix Bc:'); disp(Bc);
+% disp('Kontinuierliche Systemmatrix Ac:'); disp(Ac);
+% disp('Kontinuierliche Eingangsmatrix Bc:'); disp(Bc);
 
 % ==========================================
 % 7. Diskretisierung (zoh)
@@ -86,14 +86,49 @@ sys_d = c2d(sys_c, Ts, 'zoh');      % System diskretisieren
 Ad = sys_d.A;
 Bd = sys_d.B;
 
-disp('Diskrete Systemmatrix Ad:'); disp(Ad);
-disp('Diskrete Eingangsmatrix Bd:'); disp(Bd);
+% disp('Diskrete Systemmatrix Ad:'); disp(Ad);
+% disp('Diskrete Eingangsmatrix Bd:'); disp(Bd);
 
 % ==========================================
 % 8. LQR Regler
 % ==========================================
-Q = diag([50, 100, 1, 1]);          % Gewichtung der Zustände
-R_LQR = 1;                          % Gewichtung der Stellgröße
+Q = diag([0.5, 15, 0.001, 0.001]);             % Gewichtung der Zustände
+R_LQR = 10;                        % Gewichtung der Stellgröße
 
 K = dlqr(Ad, Bd, Q, R_LQR);
 disp('Regler-Matrix K:'); disp(K);
+
+
+% % ==========================================
+% % LQR NUR FÜR DEN MOTORARM (2x2 System)
+% % ==========================================
+% 
+% % Neues reduziertes Zustandsraummodell für [x1; x3]
+% % Zeile 1: dx1/dt = x3
+% % Zeile 2: dx3/dt = ( c_motor * U - b1_ges * x3 ) / theta_1A
+% A_arm = [0, 1; 
+%          0, -b1_ges / theta_1A];
+% 
+% B_arm = [0; 
+%          c_motor / theta_1A];
+% 
+% % Diskretisierung
+% sys_arm_c = ss(A_arm, B_arm, eye(2), 0);
+% Ts = 0.005; % Deine 200 Hz
+% sys_arm_d = c2d(sys_arm_c, Ts, 'zoh');
+% Ad_arm = sys_arm_d.A;
+% Bd_arm = sys_arm_d.B;
+% 
+% disp('Diskrete Systemmatrix Ad (nur Arm):'); disp(Ad_arm);
+% disp('Diskrete Eingangsmatrix Bd (nur Arm):'); disp(Bd_arm);
+% 
+% % --- LQR Tuning für den Arm ---
+% % Q-Matrix: [Gewicht für Position x1, Gewicht für Geschwindigkeit x3]
+% Q_arm = diag([10, 1]); 
+% 
+% % R-Matrix: Bestraft hohen Spannungseinsatz
+% R_arm = 100; 
+% 
+% % K-Matrix berechnen (Wird jetzt nur 2 Werte haben!)
+% K_arm = dlqr(Ad_arm, Bd_arm, Q_arm, R_arm);
+% disp('Regler-Matrix K_arm [K1, K3]:'); disp(K_arm);
