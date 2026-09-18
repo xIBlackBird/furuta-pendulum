@@ -1,10 +1,10 @@
 #include <Wire.h>
  
 // --- LQR Regler Konstanten (aus MATLAB) ---
-const float K1 = -0.2120; // für x1 (Arm-Position)
-const float K2 = 14.7009; // für x2 (Pendel-Position)
-const float K3 = -0.5547; // für x3 (Arm-Geschwindigkeit)
-const float K4 = 1.2680; // für x4 (Pendel-Geschwindigkeit)
+const float K1 = -0.2127; // für x1 (Arm-Position)
+const float K2 = 15.4930; // für x2 (Pendel-Position)
+const float K3 = -0.5594; // für x3 (Arm-Geschwindigkeit)
+const float K4 = 1.4194; // für x4 (Pendel-Geschwindigkeit)
 
 // --- Motor-Pins (BTS7960) ---
 const int LPWM_PIN = 5; // Pin für Linksherum
@@ -146,9 +146,9 @@ void loop() {
     float u_volt = -(K1 * x1 + K2 * x2 + K3 * x3 + K4 * x4);
 
     // --- 8. Sicherheitsabschaltung ---
-    // Wenn das Pendel weiter als z.B. 45° (0.78 rad) fällt, schalten wir den Motor ab, 
+    // Wenn das Pendel weiter als z.B. 20° (0.35 rad) fällt, schalten wir den Motor ab, 
     // damit das System auf dem Tisch nicht völlig eskaliert. Nur für LQR, sonst swingup
-    if (abs(x2) > 0.2) {
+    if (abs(x2) > 0.35) {
       u_volt = 0;
     }
     

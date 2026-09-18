@@ -20,32 +20,35 @@ c_motor = (Kt * i) / R;             % Umrechnungsfaktor von Spannung zu Drehmome
 % ==========================================
 % 3. Geometrie und Massen
 % ==========================================
-r = 0.08;                           % Abstand Pendel zu Motorachse
-rm = 0.008;                         % Radius Motorarm
-ls = 0.128;                         % Länge des Pendelstabs
-rs = 0.006;                         % Radius Pendelstab
-Vs = pi*rs^2*ls;
-dichte_pla = 1.24 * 10^3;
-dichte_alu = 2.7 * 10^3;
-mg = 0.0;                           % Masse des Pendelgewichts
-ms = Vs * dichte_alu;
-mp = ms+mg;                         % Gesamtgewicht am Pendelstab
-lp = (ms*ls/2 + mg*ls)/(ms+mg);     % Neuer Massenschwerpunkt am Pendelstab
+r             = 0.08;                % [m] Abstand Pendel zu Motorachse
+rm            = 0.008;               % [m] Radius Motorarm
+ls            = 0.128;               % [m] Länge des Pendelstabs
+rs            = 0.006;               % [m] Radius Pendelstab
+Vs            = pi * rs^2 * ls;      % [m^3] Volumen des Pendelstabs
+dichte_pla    = 1.24 * 10^3;         % [kg/m^3] Dichte PLA
+dichte_alu    = 2.7 * 10^3;          % [kg/m^3] Dichte Aluminium
+
+mg            = 3 * 5.3 * 10^-3;     % [kg] Masse des Pendelgewichts (3x 5,3g)
+lg            = ls - 0.012;          % [m] Schwerpunkt des Gewichts (1,2cm vor Ende)
+ms            = Vs * dichte_alu;     % [kg] Masse des Alu-Pendelstabs
+mp            = ms + mg;             % [kg] Gesamtmasse des Pendels (Stab + Gewicht)
+lp            = (ms*ls/2 + mg*lg) / (ms+mg); % [m] Neuer gemeinsamer Massenschwerpunkt
 
 % ==========================================
 % 4. Trägheitsmomente
 % ==========================================
-theta_motor = 0.0000036;            % Trägheitsmoment des Motors
-theta_getriebe = 0;                 % Trägheitsmoment des Getriebes
-theta_arm = 176672.25 * 10^-9;      % Aus dem CAD-Modell
+theta_motor   = 0.0000036;           % [kg*m^2] Trägheitsmoment des Motors
+theta_getriebe= 0;                   % [kg*m^2] Trägheitsmoment des Getriebes
+theta_arm     = 176672.25 * 10^-9;   % [kg*m^2] Aus dem CAD-Modell
+theta1        = theta_motor*i^2 + theta_getriebe + theta_arm; % [kg*m^2] Gesamt Arm
 
-theta1 = theta_motor*i^2 + theta_getriebe + theta_arm; 
-theta_stab = 1/12*ms*ls^2 + ms*(lp-ls/2)^2; 
-theta_gewicht = 0 + mg*(ls-lp)^2; 
-theta2 = theta_stab + theta_gewicht; 
+% Satz von Steiner (Parallelachsen-Theorem) für das Pendel:
+theta_stab    = 1/12*ms*ls^2 + ms*(lp-ls/2)^2; % [kg*m^2] Stab bezogen auf neuen Schwerpunkt
+theta_gewicht = 0 + mg*(lg-lp)^2;              % [kg*m^2] Gewicht bezogen auf neuen Schwerpunkt
+theta2        = theta_stab + theta_gewicht;    % [kg*m^2] Trägheitsmoment um neuen Schwerpunkt
 
-theta_1A = theta1 + mp*r^2; 
-theta_2P = theta2 + mp*lp^2;
+theta_1A      = theta1 + mp*r^2;     % [kg*m^2] Ersatzträgheit Motorachse
+theta_2P      = theta2 + mp*lp^2;    % [kg*m^2] Ersatzträgheit Pendelachse
 
 % ==========================================
 % 5. Dynamik-Hilfsvariablen & Reibung
@@ -55,7 +58,7 @@ Gp = mp*lp*g;
 Det = theta_1A*theta_2P - Km^2;     % Systemdeterminante
 
 b1 = 0;                             % Mechanische Reibung am Motor
-b2 = 1.3 * theta_2P;                % Reibung Pendellagerung (gemessen!)
+b2 = 1.21 * theta_2P;                % Reibung Pendellagerung (gemessen!)
 b1_ges = b1 + b_motor;              % Gesamtdämpfung Arm
 
 % ==========================================
