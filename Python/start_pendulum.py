@@ -8,14 +8,14 @@ import sys
 # --- Konfiguration ---
 COM_PORT = 'COM8'  # Wieder auf deinen Port anpassen!
 BAUD_RATE = 500000
-DAUER_SEKUNDEN = 6.0 # Dauer eines einzelnen Versuchs
+DAUER_SEKUNDEN = 15.0 # Dauer eines einzelnen Versuchs
 
 print(f"Verbinde mit {COM_PORT}...")
 try:
     ser = serial.Serial(COM_PORT, BAUD_RATE, timeout=1)
     time.sleep(2) # Warten auf Arduino-Neustart durch USB-Verbindung
     
-    versuch_nr = 8
+    versuch_nr = 11
     
     # --- Die unendliche Versuchs-Schleife ---
     while True:
@@ -130,7 +130,7 @@ try:
         print("-> Schließe das Plot-Fenster, um den nächsten Versuch zu starten!")
         plt.show() # Skript pausiert hier, bis das Fenster geschlossen wird
         
-        versuch_nr += 1 # Zähler hochsetzen für den nächsten Versuch
+        versuch_nr += 0 # Zähler hochsetzen für den nächsten Versuch
 
 except serial.SerialException as e:
     print(f"Schnittstellen-Fehler: {e}\n(Ist der Arduino eingesteckt und der Serielle Monitor geschlossen?)")
