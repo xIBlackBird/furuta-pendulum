@@ -1,6 +1,6 @@
 # Furuta-Pendel
 
-Ein Forschungs- und Entwicklungsprojekt zum Aufbau und zur Regelung eines Furuta-Pendels. Das Projekt kombiniert mechanische Konstruktion, Messdatenerfassung, Simulation und Regelungsalgorithmen mit Arduino-ähnlicher Mikrocontroller-Programmierung sowie MATLAB/Python-Analyse.
+Ein Projekt zum Aufbau und zur Regelung eines Furuta-Pendels. Das Projekt kombiniert mechanische Konstruktion, Messdatenerfassung, Simulation und Regelungsalgorithmen mit Mikrocontroller-Programmierung sowie MATLAB/Python-Analyse.
 
 ## Überblick
 
@@ -9,7 +9,6 @@ Das Ziel dieses Projekts ist die Umsetzung und Untersuchung eines Furuta-Pendels
 - Stabilisierung der Aufrechte (Balancing)
 - Swing-Up-Verhalten
 - Messung und Auswertung von Zuständen
-- Regelungsentwurf mit linearer und nichtlinearer Dynamik
 - Hardware-in-the-Loop (HIL)- und Software-in-the-Loop (SIL)-Tests
 - mechanische Konstruktion und CAD-Modelle
 
