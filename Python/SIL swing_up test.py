@@ -15,7 +15,7 @@ b1 = 0.0286
 b2 = 0.000517
 
 # LQR K-Matrix (aus MATLAB kopieren)
-K = np.array([-0.2126, 15.4537, -0.5591, 1.4222]) 
+K = np.array([-0.2127, 15.4930, -0.5594, 1.4194]) 
 
 # %% ZELLE 2: Dynamik und Regler
 # --- 2. Nicht-lineare Bewegungsgleichungen (Die Strecke) ---
@@ -87,7 +87,7 @@ def controller(t, x):
     elif controller_state == 3:
         # PHASE 3: Arm zurück auf 0 Grad ziehen
         if phi1 < np.radians(-25): 
-            U = 8.0
+            U = 6.0
         else:
             U = 0.0 # Arm bremsen, wenn 0 erreicht ist
             
@@ -206,3 +206,55 @@ for ax in axs:
 
 plt.tight_layout()
 plt.show()
+
+# %% ZELLE 4: Overlay-Vergleich (Simulation vs. Realität)
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Reale Daten aus der CSV laden (Dateinamen ggf. anpassen!)
+df_real = pd.read_csv('pendel_messung_versuch_10.csv')
+
+# Zeitachse der echten Daten bei 0 starten lassen
+t_real = df_real['Zeit_s'] - df_real['Zeit_s'].iloc[0]
+
+# --- ANPASSUNG MOTORARM (phi1) ---
+# Zur Sicherheit auch hier ent-wrappen, falls der Arm mehr als 180° dreht
+phi1_real_unwrapped = np.unwrap(df_real['x1_rad'])
+phi1_real = np.degrees(phi1_real_unwrapped)
+
+# --- ANPASSUNG PENDEL (phi2) ---
+# a) Sprünge (+/- 360 Grad) aus den Arduino-Daten entfernen
+phi2_real_unwrapped = np.unwrap(df_real['x2_rad'])
+
+# b) In Grad umrechnen
+phi2_real = np.degrees(phi2_real_unwrapped)
+phi2_sim = np.degrees(log_x[:, 1])
+
+# c) Offset ausgleichen: Realität exakt auf den Startpunkt der Simulation schieben
+offset = phi2_sim[0] - phi2_real[0]
+phi2_real = phi2_real + offset
+
+
+# 2. Plot erstellen
+fig, axs = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
+fig.canvas.manager.set_window_title('Reality Gap - Erster Kick')
+
+# Motorarm-Winkel vergleichen
+axs[0].plot(log_t, np.degrees(log_x[:, 0]), label='Simulation', linestyle='--', color='blue', linewidth=2)
+axs[0].plot(t_real, phi1_real, label='Realität', color='cyan', alpha=0.8)
+axs[0].set_ylabel('Motorarm [Grad]')
+axs[0].legend()
+axs[0].grid(True)
+
+# Pendel-Winkel vergleichen
+axs[1].plot(log_t, phi2_sim, label='Simulation', linestyle='--', color='red', linewidth=2)
+axs[1].plot(t_real, phi2_real, label='Realität', color='orange', alpha=0.8)
+axs[1].set_ylabel('Pendel [Grad]')
+axs[1].set_xlabel('Zeit [s]')
+axs[1].legend()
+axs[1].grid(True)
+
+plt.tight_layout()
+plt.show()
+# %%

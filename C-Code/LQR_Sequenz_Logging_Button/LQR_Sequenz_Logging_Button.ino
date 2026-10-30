@@ -167,28 +167,28 @@ void loop() {
         break;
         
       case 2:
-        if (x1 > -20.0 * PI / 180.0) u_volt = -6.0;
+        if (x1 > -20.0 * PI / 180.0) u_volt = -8.0;
         else u_volt = 0.0;
-        
-        if (x1 < -60.0 * PI / 180.0) controller_state = 3;
+      
+        if (phi2_dot * last_phi2_dot <= 0.0 && x1 < 0.0) controller_state = 3;
+        //if (x1 < -45.0 * PI / 180.0) controller_state = 3;
         break;
-        
+      // neue Idee: einfach ab irgendeinem Wert x1 an dem das Pendel sich am aufschwingen ist, 
+      // volle kanne in die Rückwärtsbewegung gehen
       case 3:
-        if (x1 < -25.0 * PI / 180.0) u_volt = 6.0;
+        if (x1 < 90 * PI /180) u_volt = 6.0;
         else u_volt = 0.0;
-        
-        if (phi2_dot * last_phi2_dot <= 0.0) controller_state = 1; 
         break;
-        
+             
       case 4: // LQR Aktiv
         u_volt = -(K1 * x1 + K2 * x2 + K3 * x3 + K4 * x4);
         break;
 
       case 5: // Return to Home
         {
-          float Kp_home = 2.0; // P-Anteil: Zieht den Arm zur 0 (Ausprobieren!)
+          float Kp_home = 3.0; // P-Anteil: Zieht den Arm zur 0 (Ausprobieren!)
           float Kd_home = 0.5; // D-Anteil: Bremst den Arm ab, je schneller er wird
-          float Ki_home = 0.2; // I-Anteil: Summiert die vergangenen Fehler auf
+          float Ki_home = 0.5; // I-Anteil: Summiert die vergangenen Fehler auf
 
           if (abs(x1) > 0.05) {
             // 1. Integral aufsummieren (Fehler * Zeit)
