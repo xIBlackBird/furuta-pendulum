@@ -12,6 +12,11 @@ Das Ziel dieses Projekts ist die Umsetzung und Untersuchung eines Furuta-Pendels
 - Hardware-in-the-Loop (HIL)- und Software-in-the-Loop (SIL)-Tests
 - mechanische Konstruktion und CAD-Modelle
 
+## Bilder
+<img width="4032" height="3024" alt="Pendel Down" src="https://github.com/user-attachments/assets/b149c438-8422-4df7-ba5c-f5befb25a051" />
+<img width="3024" height="4032" alt="Pendel Up" src="https://github.com/user-attachments/assets/6d6c4521-5170-46ad-bb22-2710fef95c65" />
+
+
 ## Projektstruktur
 
 ```text
